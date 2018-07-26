@@ -1,0 +1,5 @@
+*.jpg
+*.jpg.txt
+/workspace/posture_detection/
+
+/workspace/inception/
