@@ -3,7 +3,7 @@ import os
 import sys
 
 file_path = sys.argv[1] #환경변수 1번에서 가져옴.
-file_list = glob.glob(file_path + '/*.jpg')
+file_list = glob.glob(file_path + '/leaning_back_in_chair*.jpg')
 
 # 어떤 번호부터 숫자를 메길지 선택한다.
 prefix = input("How to count prefix number?:")
