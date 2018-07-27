@@ -1,5 +1,6 @@
 *.jpg
 *.jpg.txt
+/workspace/posture_graph.pb
 /workspace/posture_detection/
-
+filename_changer.py
 /workspace/inception/
