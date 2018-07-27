@@ -28,17 +28,9 @@ FLAGS = tf.app.flags.FLAGS
 images = [ ]
 img_path = './workspace/testset2'
 list_len= 0
-def main(_):
-    labels = [line.rstrip() for line in tf.gfile.GFile(FLAGS.output_labels)]
-    img_list = os.listdir(img_path)
-    print(img_list)
-    list_len=len(img_list)
-    print(list_len)
-    with tf.gfile.FastGFile(FLAGS.output_graph, 'rb') as fp:
-        graph_def = tf.GraphDef()
-        graph_def.ParseFromString(fp.read())
-        tf.import_graph_def(graph_def, name='')
 
+
+def output_log(img_list, labels):
     with tf.Session() as sess:
         correct_counter = 0
         wrong_counter = 0
@@ -74,6 +66,61 @@ def main(_):
         print('Data:%d (Correct:%d, Wrong: %d)     Accuracy:%.2f%%' % (
         list_len, correct_counter, wrong_counter, correct_counter / list_len * 100))
 
+
+def output_txt(img_list, labels):
+    with tf.Session() as sess:
+        correct_counter = 0
+        wrong_counter = 0
+        list_len = len(img_list)
+        logits = sess.graph.get_tensor_by_name('final_result:0')
+
+        f = open('report.txt', 'w')
+        f.write('=====================      예측결과      ======================\n')
+
+        for i in img_list:
+            image = tf.gfile.FastGFile(img_path + '/' + i, 'rb').read()
+            prediction = sess.run(logits, {'DecodeJpeg/contents:0': image})
+            f.write('===============================================================\n')
+            f.write(i+'\n')
+            f.write('---------------------------------------------------------------\n')
+            it_is = ''
+            temp = 0
+            for j in range(len(labels)):
+                name = labels[j]
+                score = prediction[0][j]
+                if (score > temp):
+                    temp = score
+                    it_is = name
+                f.write('%s (%.2f%%) \n' % (name, score * 100))
+            f.write('---------------------------------------------------------------\n')
+            if it_is in i:
+                f.write(">>result:correct\n")
+                correct_counter = correct_counter + 1
+            else:
+                f.write(">>result:wrong\n")
+                wrong_counter = wrong_counter + 1
+            # print('It is %s (%.2f%%)' % (it_is, temp * 100))
+            f.write('=============================================================== \n\n')
+
+        f.write('Data:%d (Correct:%d, Wrong: %d)     Accuracy:%.2f%%' % (
+            list_len, correct_counter, wrong_counter, correct_counter / list_len * 100))
+
+    f.close()
+
+
+def main(_):
+    labels = [line.rstrip() for line in tf.gfile.GFile(FLAGS.output_labels)]
+    img_list = os.listdir(img_path)
+    print(img_list)
+    list_len=len(img_list)
+    print(list_len)
+    with tf.gfile.FastGFile(FLAGS.output_graph, 'rb') as fp:
+        graph_def = tf.GraphDef()
+        graph_def.ParseFromString(fp.read())
+        tf.import_graph_def(graph_def, name='')
+
+    output_txt(img_list, labels)
+
     # if FLAGS.show_image:
     #     img = mpimg.imread('./workspace/flower_photos/testing34.jpg')
     #     plt.imshow(img)
@@ -82,7 +129,6 @@ def main(_):
 
 if __name__ == "__main__":
     tf.app.run()
-
 
 
 
