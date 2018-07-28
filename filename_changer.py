@@ -2,7 +2,7 @@ import glob
 import os
 import sys
 # file_path = ys.argv[1] #환경변수 1번에서 가져옴.
-file_path = './workspace/testset2'
+file_path = './workspace/testset4'
 file_list = glob.glob(file_path + '/*.jpg')
 
 # 어떤 번호부터 숫자를 메길지 선택한다.

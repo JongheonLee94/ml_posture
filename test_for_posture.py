@@ -26,7 +26,9 @@ tf.app.flags.DEFINE_boolean("show_image",
 
 FLAGS = tf.app.flags.FLAGS
 images = [ ]
-img_path = './workspace/testset2'
+dir_path='./workspace/'
+testset='testset5'
+img_path = dir_path+testset
 list_len= 0
 
 
@@ -63,7 +65,7 @@ def output_log(img_list, labels):
             # print('It is %s (%.2f%%)' % (it_is, temp * 100))
             print('=============================================================== \n')
 
-        print('Data:%d (Correct:%d, Wrong: %d)     Accuracy:%.2f%%' % (
+        print('Data:%d (Correct:%d, Wrong: %d)   Correct rate:%.2f%%' % (
         list_len, correct_counter, wrong_counter, correct_counter / list_len * 100))
 
 
@@ -74,7 +76,7 @@ def output_txt(img_list, labels):
         list_len = len(img_list)
         logits = sess.graph.get_tensor_by_name('final_result:0')
 
-        f = open('report.txt', 'w')
+        f = open('report_'+testset+'.txt', 'w')
         f.write('=====================      예측결과      ======================\n')
 
         for i in img_list:
@@ -101,8 +103,8 @@ def output_txt(img_list, labels):
                 wrong_counter = wrong_counter + 1
             # print('It is %s (%.2f%%)' % (it_is, temp * 100))
             f.write('=============================================================== \n\n')
-
-        f.write('Data:%d (Correct:%d, Wrong: %d)     Accuracy:%.2f%%' % (
+        f.write(testset)
+        f.write('Data:%d (Correct:%d, Wrong: %d)   Correct rate:%.2f%%' % (
             list_len, correct_counter, wrong_counter, correct_counter / list_len * 100))
 
     f.close()
