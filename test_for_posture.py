@@ -27,7 +27,7 @@ tf.app.flags.DEFINE_boolean("show_image",
 FLAGS = tf.app.flags.FLAGS
 images = [ ]
 dir_path='./workspace/'
-testset='testset5'
+testset='testset1'
 img_path = dir_path+testset
 list_len= 0
 
@@ -39,7 +39,7 @@ def output_log(img_list, labels):
         list_len = len(img_list)
 
         logits = sess.graph.get_tensor_by_name('final_result:0')
-        print('=====================      예측결과      ======================')
+        print('=====================       result      ======================')
         for i in img_list:
             image = tf.gfile.FastGFile(img_path + '/' + i, 'rb').read()
             prediction = sess.run(logits, {'DecodeJpeg/contents:0': image})
@@ -77,7 +77,7 @@ def output_txt(img_list, labels):
         logits = sess.graph.get_tensor_by_name('final_result:0')
 
         f = open('report_'+testset+'.txt', 'w')
-        f.write('=====================      예측결과      ======================\n')
+        f.write('=====================       result       ======================\n')
 
         for i in img_list:
             image = tf.gfile.FastGFile(img_path + '/' + i, 'rb').read()

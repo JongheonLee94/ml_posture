@@ -73,6 +73,7 @@ import re
 import struct
 import sys
 import tarfile
+import matplotlib.pyplot as plt
 
 import numpy as np
 from six.moves import urllib
@@ -201,7 +202,6 @@ def get_image_path(image_lists, label_name, index, image_dir, category):
       File system path string to an image that meets the requested parameters.
 
     """
-
     if label_name not in image_lists:
         tf.logging.fatal('Label does not exist %s.', label_name)
     label_lists = image_lists[label_name]
@@ -760,6 +760,12 @@ def add_evaluation_step(result_tensor, ground_truth_tensor):
 
 
 def main(_):
+
+    loss = []
+    acc_train = []
+    acc_val = []
+    idx = 0
+
     # Setup the directory we'll write summaries to for TensorBoard
     if tf.gfile.Exists(FLAGS.summaries_dir):
         tf.gfile.DeleteRecursively(FLAGS.summaries_dir)
@@ -821,6 +827,7 @@ def main(_):
 
     # Run the training for as many cycles as requested on the command line.
     for i in range(FLAGS.how_many_training_steps):
+        idx +=1
         # Get a batch of input bottleneck values, either calculated fresh every time
         # with distortions applied, or from the cache stored on disk.
         if do_distort_images:
@@ -842,6 +849,35 @@ def main(_):
 
         # Every so often, print out how well the graph is training.
         is_last_step = (i + 1 == FLAGS.how_many_training_steps)
+
+        train_accuracy, cross_entropy_value = sess.run(
+            [evaluation_step, cross_entropy],
+            feed_dict={bottleneck_input: train_bottlenecks,
+                       ground_truth_input: train_ground_truth})
+        print('%s: Step %d: Train accuracy = %.1f%%' % (datetime.now(), i,
+                                                        train_accuracy * 100))
+        print('%s: Step %d: Cross entropy = %f' % (datetime.now(), i,
+                                                   cross_entropy_value))
+        validation_bottlenecks, validation_ground_truth, _ = (
+            get_random_cached_bottlenecks(
+                sess, image_lists, FLAGS.validation_batch_size, 'validation',
+                FLAGS.bottleneck_dir, FLAGS.image_dir, jpeg_data_tensor,
+                bottleneck_tensor))
+        # Run a validation step and capture training summaries for TensorBoard
+        # with the `merged` op.
+        validation_summary, validation_accuracy = sess.run(
+            [merged, evaluation_step],
+            feed_dict={bottleneck_input: validation_bottlenecks,
+                       ground_truth_input: validation_ground_truth})
+        validation_writer.add_summary(validation_summary, i)
+        print('%s: Step %d: Validation accuracy = %.1f%% (N=%d)' %
+              (datetime.now(), i, validation_accuracy * 100,
+               len(validation_bottlenecks)))
+
+        acc_train.append(train_accuracy)
+        acc_val.append(validation_accuracy)
+        loss.append(cross_entropy_value)
+        '''
         if (i % FLAGS.eval_step_interval) == 0 or is_last_step:
             train_accuracy, cross_entropy_value = sess.run(
                 [evaluation_step, cross_entropy],
@@ -866,6 +902,21 @@ def main(_):
             print('%s: Step %d: Validation accuracy = %.1f%% (N=%d)' %
                   (datetime.now(), i, validation_accuracy * 100,
                    len(validation_bottlenecks)))
+        '''
+    time = np.arange(idx)
+    plt.figure(figsize=(6, 6))
+    plt.plot(time, acc_train, 'r-', acc_val, 'b*')
+    plt.xlabel("step")
+    plt.ylabel("accuracy")
+    plt.legend(['train', 'validation'], loc='lower right')
+    plt.show()
+
+    plt.figure(figsize=(6, 6))
+    plt.plot(time, loss, 'r-')
+    plt.xlabel("step")
+    plt.ylabel("loss")
+    plt.legend(['loss'], loc='upper right')
+    plt.show()
 
     # We've completed all our training, so run a final test evaluation on
     # some new images we haven't used before.
