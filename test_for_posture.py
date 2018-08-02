@@ -1,10 +1,9 @@
-#you have to classfy directory = image name in testset
+# you have to classfy directory = image name in testset
 import tensorflow as tf
 # import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import sys
-
 
 from tensorflow.python.platform import gfile
 import os.path
@@ -25,21 +24,94 @@ tf.app.flags.DEFINE_boolean("show_image",
                             "이미지 추론 후 이미지를 보여줍니다.")
 
 FLAGS = tf.app.flags.FLAGS
-images = [ ]
-dir_path='./workspace/'
-testset='testset1'
-img_path = dir_path+testset
-list_len= 0
+images = []
+dir_path = './workspace/'
+testset = 'testset6'
+img_path = dir_path + testset
+list_len = 0
+
+def result_of_test(img_list, labels,output_txt=0):
+    result=''
+    with tf.Session() as sess:
+        correct_counter = 0
+        wrong_counter = 0
+        correct_dic = {}
+        wrong_dic = {}
+        for i in labels:
+            correct_dic[i] = 0
+            wrong_dic[i] = 0
+        list_len = len(img_list)
+        logits = sess.graph.get_tensor_by_name('final_result:0')
+
+        result += '=====================       result      ======================\n'
+
+        for i in img_list:
+            image = tf.gfile.FastGFile(img_path + '/' + i, 'rb').read()
+            prediction = sess.run(logits, {'DecodeJpeg/contents:0': image})
+            result += '===============================================================\n'
+            result += i+'\n'
+            result += '---------------------------------------------------------------\n'
+            it_is = ''
+            temp = 0
+
+            for j in range(len(labels)):
+                name = labels[j]
+                score = prediction[0][j]
+
+                if (score > temp):
+                    temp = score
+                    it_is = name
+
+                result += '%s (%.2f%%) \n' % (name, score * 100)
+
+            result += '---------------------------------------------------------------\n'
+
+            if it_is in i:
+                result += ">>result:correct\n"
+                for k in labels:
+                    if k in i:
+                        correct_dic[k] = correct_dic[k] + 1
+
+            else:
+                result += ">>result:wrong \n"
+                for k in labels:
+                    if k in i:
+                        wrong_dic[k] = wrong_dic[k] + 1
+
+            # print('It is %s (%.2f%%)' % (it_is, temp * 100))
+            result += '=============================================================== \n\n'
+        for i in labels:
+            result += '%s : (Correct:%d, Wrong: %d)   Correct rate:%.2f%% \n' % (
+                i, correct_dic[i], wrong_dic[i], correct_dic[i] / (correct_dic[i] + wrong_dic[i]) * 100)
+            correct_counter = correct_counter + correct_dic[i]
+            wrong_counter = wrong_counter + wrong_dic[i]
+        result += '=============================================================== \n'
+        result += 'Data:%d (Correct:%d, Wrong: %d)   Correct rate:%.2f%%' % (
+            list_len, correct_counter, wrong_counter, correct_counter / list_len * 100)
+
+        if output_txt:
+            f = open('report_' + testset + '.txt', 'w')
+            f.write(result)
+            f.close()
+
+    return result
+
 
 
 def output_log(img_list, labels):
     with tf.Session() as sess:
         correct_counter = 0
         wrong_counter = 0
+        correct_dic = {}
+        wrong_dic = {}
+        for i in labels:
+            correct_dic[i] = 0
+            wrong_dic[i] = 0
         list_len = len(img_list)
-
         logits = sess.graph.get_tensor_by_name('final_result:0')
+
         print('=====================       result      ======================')
+
         for i in img_list:
             image = tf.gfile.FastGFile(img_path + '/' + i, 'rb').read()
             prediction = sess.run(logits, {'DecodeJpeg/contents:0': image})
@@ -48,9 +120,11 @@ def output_log(img_list, labels):
             print('---------------------------------------------------------------')
             it_is = ''
             temp = 0
+
             for j in range(len(labels)):
                 name = labels[j]
                 score = prediction[0][j]
+
                 if (score > temp):
                     temp = score
                     it_is = name
@@ -58,15 +132,26 @@ def output_log(img_list, labels):
             print('---------------------------------------------------------------')
             if it_is in i:
                 print(">>result:correct")
-                correct_counter = correct_counter + 1
+                for k in labels:
+                    if k in i:
+                        correct_dic[k] = correct_dic[k] + 1
+
             else:
                 print(">>result:wrong")
-                wrong_counter = wrong_counter + 1
+                for k in labels:
+                    if k in i:
+                        wrong_dic[k] = wrong_dic[k] + 1
+
             # print('It is %s (%.2f%%)' % (it_is, temp * 100))
             print('=============================================================== \n')
-
+        for i in labels:
+            print('%s : (Correct:%d, Wrong: %d)   Correct rate:%.2f%%' % (
+                i, correct_dic[i], wrong_dic[i], correct_dic[i] / (correct_dic[i] + wrong_dic[i]) * 100))
+            correct_counter = correct_counter + correct_dic[i]
+            wrong_counter = wrong_counter + wrong_dic[i]
+        print('=============================================================== \n')
         print('Data:%d (Correct:%d, Wrong: %d)   Correct rate:%.2f%%' % (
-        list_len, correct_counter, wrong_counter, correct_counter / list_len * 100))
+            list_len, correct_counter, wrong_counter, correct_counter / list_len * 100))
 
 
 def output_txt(img_list, labels):
@@ -76,14 +161,14 @@ def output_txt(img_list, labels):
         list_len = len(img_list)
         logits = sess.graph.get_tensor_by_name('final_result:0')
 
-        f = open('report_'+testset+'.txt', 'w')
+        f = open('report_' + testset + '.txt', 'w')
         f.write('=====================       result       ======================\n')
 
         for i in img_list:
             image = tf.gfile.FastGFile(img_path + '/' + i, 'rb').read()
             prediction = sess.run(logits, {'DecodeJpeg/contents:0': image})
             f.write('===============================================================\n')
-            f.write(i+'\n')
+            f.write(i + '\n')
             f.write('---------------------------------------------------------------\n')
             it_is = ''
             temp = 0
@@ -114,14 +199,16 @@ def main(_):
     labels = [line.rstrip() for line in tf.gfile.GFile(FLAGS.output_labels)]
     img_list = os.listdir(img_path)
     print(img_list)
-    list_len=len(img_list)
+    list_len = len(img_list)
     print(list_len)
     with tf.gfile.FastGFile(FLAGS.output_graph, 'rb') as fp:
         graph_def = tf.GraphDef()
         graph_def.ParseFromString(fp.read())
         tf.import_graph_def(graph_def, name='')
 
-    output_txt(img_list, labels)
+    # output_log(img_list, labels)
+    # output_txt(img_list, labels)
+    print(result_of_test(img_list,labels,1))
 
     # if FLAGS.show_image:
     #     img = mpimg.imread('./workspace/flower_photos/testing34.jpg')
@@ -131,11 +218,3 @@ def main(_):
 
 if __name__ == "__main__":
     tf.app.run()
-
-
-
-
-
-
-
-
