@@ -8,7 +8,10 @@ I fed my posture picture on chair into Inception V3 model.
 
 
 ### How to use Inception v3
- There are many parameters in Inception V3 model. I think you have to fix these parameters.
+ There are many parameters in Inception V3 model. I think you have to fix these parameters(bottom of retrain code).
+ These are environment valiable. 
+ Add  --image_dir = 'path'
+ 
    >> parser.add_argument(
         '--image_dir',
         type=str,
@@ -21,11 +24,11 @@ I fed my posture picture on chair into Inception V3 model.
         default=4000,
         help='How many training steps to run before ending.'
     )
-    parser.add_argument( \n
-        '--learning_rate',\n
-        type=float,\n
-        default=0.01,\n
-        help='How large a learning rate to use when training.'\n
+    parser.add_argument( 
+        '--learning_rate',
+        type=float,
+        default=0.01,
+        help='How large a learning rate to use when training.'
 >>    )
   
   
