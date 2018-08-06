@@ -21,11 +21,11 @@ I fed my posture picture on chair into Inception V3 model.
         default=4000,
         help='How many training steps to run before ending.'
     )
-    parser.add_argument(
-        '--learning_rate',
-        type=float,
-        default=0.01,
-        help='How large a learning rate to use when training.'
-    )
+    parser.add_argument( \n
+        '--learning_rate',\n
+        type=float,\n
+        default=0.01,\n
+        help='How large a learning rate to use when training.'\n
+>>    )
   
   
