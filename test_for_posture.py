@@ -14,20 +14,21 @@ from tensorflow.python.util import compat
 MAX_NUM_IMAGES_PER_CLASS = 2 ** 27 - 1  # ~134M
 
 tf.app.flags.DEFINE_string("output_graph",
-                           "./workspace/posture_graph.pb",
+                           "/tmp/output_graph.pb",
                            "학습된 신경망이 저장된 위치")
 tf.app.flags.DEFINE_string("output_labels",
-                           "./workspace/posture_labels.txt",
+                           "/tmp/output_labels.txt",
                            "학습할 레이블 데이터 파일")
-tf.app.flags.DEFINE_boolean("show_image",
-                            True,
-                            "이미지 추론 후 이미지를 보여줍니다.")
+#tf.app.flags.DEFINE_boolean("show_image",
+#                            True,
+#                            "이미지 추론 후 이미지를 보여줍니다.")
 
 FLAGS = tf.app.flags.FLAGS
 images = []
-dir_path = './workspace/'
-testset = 'testset6'
-img_path = dir_path + testset
+###### You have to change bellow two parameter on your own #####
+dir_path = './workspace/'           #except Last direcory name because I want to Testset name
+testset = 'testset6'                #Last directory name
+img_path = dir_path + testset       #./workspace/testset6
 list_len = 0
 
 
